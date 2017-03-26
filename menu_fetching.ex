@@ -1,5 +1,3 @@
-# yeah
-
 defmodule Menu.Fetching do
 	def fetch() do
 		url = "http://wesleyan.cafebonappetit.com/cafe/summerfields/"
@@ -34,9 +32,6 @@ defmodule Menu.Fetching do
 end
 
 
-IO.inspect Menu.Fetching.finish()
-
-
 
 # CHeck out plugins to scrape wordpress
 ### Star & Crescent
@@ -49,34 +44,58 @@ IO.inspect Menu.Fetching.finish()
 # list_of_entry_content = Floki.find(html_x, ".entry-content")
 # raw_html = Floki.raw_html(list_of_entry_content)
 
+defmodule SandC.Menu do
+	# Need to either scrape for the correct link or just guess it...
+	def get_body do
+		url = "http://wesleying.org/2017/03/05/star-and-crescent-menu-week-of-36/"
+		HTTPoison.get!(url).body
+		|> Floki.parse
+		|> Floki.find(".entry-content")
+		|> Floki.raw_html
+	end
+end
 
 ### WesWings
+# This just gets the most recently posted. not necessarily TODAYs
 
-# https://weswings.com/category/weswings-specials/feed/
-url = "https://weswings.com/category/weswings-specials/"
-body = HTTPoison.get!(url).body
-html_x = Floki.parse(body)
-list = Floki.find(html_x, ".entry-title a")
+defmodule Weswings.Menu do
 
-# def recursive_function(list)
-	# curr_tag = hd(list)
-	# post_title = hd(elem(curr_tag, 2))  # if it is WesWings Specials...
-	# if String.slice(post_title, 0, 13) == "WesWings Spec":
-		# curr_val  = elem(curr_tag,1)
-		# href_tag  = hd(curr_val)
-		# href_val  = elem(href_tag, 1)
-		# return href_val
-	# else:
-		# recursive_function(tl(list))		
-			# check for post title on the hd(tl(list))
-			# until you get a match
-			# if no match return couldn't find it :(
-			# if match then return
+	def get_body() do
+		url = "https://weswings.com/category/weswings-specials/"
+		HTTPoison.get!(url).body
+		|> Floki.parse
+		|> Floki.find(".entry-title a")
+		|> find_correct_post
+		|> scrape_menu_items
+	end
 
-# content = HTTPoison.get!(href_val).body
-# html_x = Floki.parse(content)
-# list = Floki.find(html_x, "div .entry-content")
-# text = Floki.text(list)
+	def find_correct_post(found_floki) when length(found_floki) == 0, do: false
+	def find_correct_post(found_floki) do
+		curr_tag = hd(found_floki)
+		post_title = hd(elem(curr_tag, 2))
+		case String.slice(post_title, 0, 13) do
+			"WesWings Spec" -> 
+				curr_tag
+				|> elem(1)
+				|> hd()
+				|> elem(1)
+			_ -> find_correct_post(tl(found_floki))
+		end
+	end
+
+	def scrape_menu_items(false), do: "Sorry, check out \'https://weswings.com/category/weswings-specials/\' for today's specials"
+	def scrape_menu_items(url) do
+		case url do
+			false -> "Sorry, check out #{url} for today's specials"
+			_ -> 
+				IO.inspect url
+				HTTPoison.get!(url).body
+				|> Floki.parse()
+				|> Floki.find("div .entry-content")
+				|> Floki.text
+		end
+	end
+end
 ###
 
 
@@ -86,8 +105,8 @@ list = Floki.find(html_x, ".entry-title a")
 # A public API
 # http://wesleyan.cafebonappetit.com/wp-json/
 # http://wesleyan.cafebonappetit.com/cafe/the-marketplace-at-usdan/2017-03-27/
-#http://legacy.cafebonappetit.com/api/2/menus?cafe=332
-#Marketplace ID = 332
+# http://legacy.cafebonappetit.com/api/2/menus?cafe=332
+# Marketplace ID = 332
 # Summerfields ID = 337
 
 #  https://github.com/wesleyan
