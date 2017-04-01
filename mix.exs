@@ -2,7 +2,7 @@ defmodule WesleyanMenus.Mixfile do
   use Mix.Project
 
   def application do
-    [applications: [:poison, :httpotion, :httpoison]]
+    [applications: [:poison, :httpotion, :httpoison, :floki]]
   end
 
   def project do

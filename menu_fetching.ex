@@ -1,3 +1,5 @@
+# mix run menu_fetching.ex
+
 defmodule Menu.Fetching do
 	def fetch() do
 		url = "http://wesleyan.cafebonappetit.com/cafe/summerfields/"
@@ -39,11 +41,6 @@ end
 ### Then I don't have to grab specific days
 ### This is for Star and Crescent
 # URL changes all the time
-# body = HTTPoison.get!(url, timeout: [10,000]).body
-# html_x = Floki.parse(body)
-# list_of_entry_content = Floki.find(html_x, ".entry-content")
-# raw_html = Floki.raw_html(list_of_entry_content)
-
 defmodule SandC.Menu do
 	# Need to either scrape for the correct link or just guess it...
 	def get_body do
@@ -54,6 +51,17 @@ defmodule SandC.Menu do
 		|> Floki.raw_html
 	end
 end
+
+# IO.inspect SandC.Menu.get_body
+
+# case HTTPoison.get(url) do
+#   {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+#     IO.puts body
+#   {:ok, %HTTPoison.Response{status_code: 404}} ->
+#     IO.puts "Not found :("
+#   {:error, %HTTPoison.Error{reason: reason}} ->
+#     IO.inspect reason
+# end
 
 ### WesWings
 # This just gets the most recently posted. not necessarily TODAYs
@@ -96,6 +104,8 @@ defmodule Weswings.Menu do
 		end
 	end
 end
+
+# IO.inspect Weswings.Menu.get_body()
 ###
 
 
