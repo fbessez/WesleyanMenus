@@ -159,14 +159,14 @@ defmodule BonAppetit.Menu do
 		item_label = body_map["items"][item_no]["label"]
 	end
 
-	def get_breakfast_items(body_map) do
-		breakfast = hd(hd(hd body_map["days"])["cafes"][cafe]["dayparts"]))
-		# which meal is it? breakfast, lunch, dinner, brunch?
-		meal = breakfast["label"]
-		# a list of stations and what's being served
-		stations = breakfast["stations"]
+	# def get_breakfast_items(body_map) do
+	# 	breakfast = (hd(hd(hd body_map["days"])["cafes"][cafe]["dayparts"]))
+	# 	# which meal is it? breakfast, lunch, dinner, brunch?
+	# 	meal = breakfast["label"]
+	# 	# a list of stations and what's being served
+	# 	stations = breakfast["stations"]
 
-	end
+	# end
 
 end
 
