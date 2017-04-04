@@ -1,0 +1,13 @@
+v2.
+{<<"/Users/fabienbessez/Desktop/Git CS/WesleyanMenus/_build/dev/lib/atomic_map/ebin/Elixir.AtomicMap.Opts.beam">>,
+ 'Elixir.AtomicMap.Opts',module,<<"lib/atomic_map.ex">>,
+ ['Elixir.Protocol','Elixir.Module','Elixir.AtomicMap','Elixir.Kernel.Utils',
+  'Elixir.Kernel'],
+ [],[],nil}.
+{<<"/Users/fabienbessez/Desktop/Git CS/WesleyanMenus/_build/dev/lib/atomic_map/ebin/Elixir.AtomicMap.beam">>,
+ 'Elixir.AtomicMap',module,<<"lib/atomic_map.ex">>,
+ ['Elixir.AtomicMap.Opts','Elixir.Protocol','Elixir.Module',
+  'Elixir.Kernel.Utils','Elixir.Kernel'],
+ ['Elixir.Map','Elixir.List','Elixir.Macro','Elixir.Tuple',erlang,
+  'Elixir.String','Elixir.ArgumentError','Elixir.Atom','Elixir.Enum'],
+ [],nil}.

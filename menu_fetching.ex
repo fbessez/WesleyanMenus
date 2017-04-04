@@ -23,7 +23,7 @@ defmodule Menu.Fetching do
 	def get_body(response) do
 		Map.from_struct(response)
 		|> Map.fetch!(:body)
-		|> decode(response.status_code)
+		# |> decode(response.status_code)
 	end
 
 	def finish() do
@@ -34,14 +34,13 @@ defmodule Menu.Fetching do
 end
 
 
-
 # CHeck out plugins to scrape wordpress
 ### Star & Crescent
 ### I could just grab the whole week at once
 ### Then I don't have to grab specific days
 ### This is for Star and Crescent
 # URL changes all the time
-defmodule SandC.Menu do
+defmodule StarandCrescent.Menu do
 	# Need to either scrape for the correct link or just guess it...
 	def get_body do
 		url = "http://wesleying.org/2017/03/05/star-and-crescent-menu-week-of-36/"
@@ -106,18 +105,92 @@ defmodule Weswings.Menu do
 end
 
 # IO.inspect Weswings.Menu.get_body()
-###
 
+
+defmodule BonAppetit.Menu do
+	cafe = "332"
+	url = 'http://legacy.cafebonappetit.com/api/2/menus?cafe=#{cafe}'
+
+	def fetch(url) do
+		{:ok, response} = HTTPoison.get(url, [])
+		get_body(response)
+	end
+
+	def get_body(response) do
+		response
+		|> Map.from_struct
+		|> Map.fetch!(:body)
+		|> decode_body(response.status_code)
+	end
+
+	def decode_body(body, status_code) do
+		case status_code do
+			200 -> 
+				Poison.decode!(body)
+				# for {key, val} <- z, into: %{}, do: {String.to_atom(key), val} 
+			_ ->
+				"No!"
+		end
+	end
+
+
+	def fetch2(url) do
+		{:ok, response} = HTTPoison.get(url, [])
+		secondary(response)
+	end
+
+	def secondary(response) do
+	    response
+	    |> Map.from_struct
+	    |> Map.fetch!(:body)
+	    |> decode_body
+	end
+
+	def decode_body(body) do
+		{:ok, body_map} = Poison.decode(body)
+		finish(body_map)
+	end
+
+	def finish(body_map) do
+		IO.inspect body_map
+	end
+
+	def get_item_label(body_map, item_no) do
+		item_label = body_map["items"][item_no]["label"]
+	end
+
+	def get_breakfast_items(body_map) do
+		breakfast = hd(hd(hd body_map["days"])["cafes"][cafe]["dayparts"]))
+		# which meal is it? breakfast, lunch, dinner, brunch?
+		meal = breakfast["label"]
+		# a list of stations and what's being served
+		stations = breakfast["stations"]
+
+	end
+
+end
+
+BonAppetit.Menu.fetch2('http://legacy.cafebonappetit.com/api/2/menus?cafe=332')
 
 ### Bon Appetit
-# http://legacy.cafebonappetit.com/api/2/items?item=4470605
+
 # view-source:http://wesleyan.cafebonappetit.com/cafe/2017-03-27/
-# A public API
+
+
+### A public API explanation
 # http://wesleyan.cafebonappetit.com/wp-json/
-# http://wesleyan.cafebonappetit.com/cafe/the-marketplace-at-usdan/2017-03-27/
+
+#### THESE ONLY DISPLAY ITEM NUMBERS
+## DAILY JSON FOR MENU ITEMS AT USDAN
 # http://legacy.cafebonappetit.com/api/2/menus?cafe=332
 # Marketplace ID = 332
+
+## DAILY JSON FOR MENU ITEMS AT Summies
+# http://legacy.cafebonappetit.com/api/2/menus?cafe=337
 # Summerfields ID = 337
+
+## Item Query Lookup URL
+# http://legacy.cafebonappetit.com/api/2/items?item=4470605
 
 #  https://github.com/wesleyan
 # https://trello.com/b/jCd8aDdO/st-olaf-apis
