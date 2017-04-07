@@ -1,70 +1,63 @@
 # mix run menu_fetching.ex
 
-defmodule Menu.Fetching do
-	def fetch() do
-		url = "http://wesleyan.cafebonappetit.com/cafe/summerfields/"
-		# Define a function get_url/1 that takes what you want to do 
-			# like, dislike, message. and so on
-			# which basically case type of o
-		{:ok, response} = HTTPoison.get(url, [timeout: 10_000])
-		response
-	end
-
-	def decode(body, status_code) do
-		case status_code do
-			200 ->
-				body = Poison.decode!(body)
-				body
-			_ -> 
-				"Sorry"
-		end
-	end
-
-	def get_body(response) do
-		Map.from_struct(response)
-		|> Map.fetch!(:body)
-		# |> decode(response.status_code)
-	end
-
-	def finish() do
-		fetch()
-		|> get_body
-		|> decode(200)
-	end
-end
 
 
-# CHeck out plugins to scrape wordpress
 ### Star & Crescent
 ### I could just grab the whole week at once
-### Then I don't have to grab specific days
-### This is for Star and Crescent
-# URL changes all the time
 defmodule StarandCrescent.Menu do
 	# Need to either scrape for the correct link or just guess it...
 	def get_body do
-		url = "http://wesleying.org/2017/03/05/star-and-crescent-menu-week-of-36/"
+		url = "http://wesleying.org/author/star-and-crescent/"
 		HTTPoison.get!(url).body
 		|> Floki.parse
-		|> Floki.find(".entry-content")
+		|> Floki.find(".entry-title a")
+		|> find_correct_post
+		|> scrape_menu_items
+		# |> Floki.find(".entry-content")
+		# |> Floki.raw_html
+	end
+
+	def find_correct_post(found_floki) when length(found_floki) == 0, do: false
+	# IT is not getting the right head --> too many options to choose from
+	def find_correct_post(found_floki) do
+		curr = hd found_floki
+# 		IO.inspect curr -> 
+# 			{"a",
+#  [{"href",
+#    "http://wesleying.org/2017/04/05/star-and-crescent-closed-wednesday-45/"},
+#   {"title", "Permalink to Star and Crescent CLOSED Wednesday, 4/5"},
+#   {"rel", "bookmark"}], ["Star and Crescent CLOSED Wednesday, 4/5"]}
+# {"a", [{"href", ""}], [{"i", [{"class", ""}], []}]}
+		title = hd(elem(curr, 2))
+		IO.inspect title
+		case String.slice(title, 0, 22) do
+		# case title = "Star and Crescent Menu"
+		# this should be grabbing top down so most recent
+		# otherwise i can match with the current week 4/4 or 3/27 or whatever
+			"Star and Crescent Menu" -> 
+				Floki.attribute(curr, "href")
+				|> hd()
+			_ -> find_correct_post(tl found_floki)
+		end
+	end
+
+	def scrape_menu_items(false), do: "Sorry couldn't find the menu. Check out \"http://wesleying.org/author/star-and-crescent/\""
+	def scrape_menu_items(url) do
+		IO.puts "Not Yet Implemented"
+		{ok, res} = HTTPoison.get(url, [])
+		res.body
+		|> Floki.parse()
+		|> Floki.find("div, .entry-content")
+		|> Floki.filter_out("div p img")
 		|> Floki.raw_html
 	end
 end
 
-# IO.inspect SandC.Menu.get_body
+# StarandCrescent.Menu.get_body()
 
-# case HTTPoison.get(url) do
-#   {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-#     IO.puts body
-#   {:ok, %HTTPoison.Response{status_code: 404}} ->
-#     IO.puts "Not found :("
-#   {:error, %HTTPoison.Error{reason: reason}} ->
-#     IO.inspect reason
-# end
 
-### WesWings
+### WesWings --> COMPLETE-ish
 # This just gets the most recently posted. not necessarily TODAYs
-
 defmodule Weswings.Menu do
 
 	def get_body() do
@@ -81,11 +74,11 @@ defmodule Weswings.Menu do
 		curr_tag = hd(found_floki)
 		post_title = hd(elem(curr_tag, 2))
 		case String.slice(post_title, 0, 13) do
+			# Or i could case on if 4-9-17 is in the title
 			"WesWings Spec" -> 
 				curr_tag
-				|> elem(1)
+				|> Floki.attribute("href")
 				|> hd()
-				|> elem(1)
 			_ -> find_correct_post(tl(found_floki))
 		end
 	end
@@ -99,7 +92,11 @@ defmodule Weswings.Menu do
 				HTTPoison.get!(url).body
 				|> Floki.parse()
 				|> Floki.find("div .entry-content")
-				|> Floki.text
+			# Floki.find("b") lists all the specials of the day
+			# Floki.find("h3") lists the meals
+			 	|> Floki.filter_out("div div") #leaves you with just the items
+			 	|> Floki.raw_html #leaves you with some good html!!
+			# |> Floki.text
 		end
 	end
 end
@@ -111,28 +108,27 @@ defmodule BonAppetit.Menu do
 	cafe = "332"
 	url = 'http://legacy.cafebonappetit.com/api/2/menus?cafe=#{cafe}'
 
-	def fetch(url) do
-		{:ok, response} = HTTPoison.get(url, [])
-		get_body(response)
-	end
+	# def fetch(url) do
+	# 	{:ok, response} = HTTPoison.get(url, [])
+	# 	get_body(response)
+	# end
 
-	def get_body(response) do
-		response
-		|> Map.from_struct
-		|> Map.fetch!(:body)
-		|> decode_body(response.status_code)
-	end
+	# def get_body(response) do
+	# 	response
+	# 	|> Map.from_struct
+	# 	|> Map.fetch!(:body)
+	# 	|> decode_body(response.status_code)
+	# end
 
-	def decode_body(body, status_code) do
-		case status_code do
-			200 -> 
-				Poison.decode!(body)
-				# for {key, val} <- z, into: %{}, do: {String.to_atom(key), val} 
-			_ ->
-				"No!"
-		end
-	end
-
+	# def decode_body(body, status_code) do
+	# 	case status_code do
+	# 		200 -> 
+	# 			Poison.decode!(body)
+	# 			# for {key, val} <- z, into: %{}, do: {String.to_atom(key), val} 
+	# 		_ ->
+	# 			"No!"
+	# 	end
+	# end
 
 	def fetch2(url) do
 		{:ok, response} = HTTPoison.get(url, [])
@@ -171,6 +167,10 @@ defmodule BonAppetit.Menu do
 end
 
 BonAppetit.Menu.fetch2('http://legacy.cafebonappetit.com/api/2/menus?cafe=332')
+
+
+
+
 
 ### Bon Appetit
 
