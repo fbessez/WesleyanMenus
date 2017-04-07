@@ -105,29 +105,22 @@ end
 
 
 defmodule BonAppetit.Menu do
+	# def cafe do
+	# 	"332"
+	# end
 	cafe = "332"
 	url = 'http://legacy.cafebonappetit.com/api/2/menus?cafe=#{cafe}'
-
-	# def fetch(url) do
-	# 	{:ok, response} = HTTPoison.get(url, [])
-	# 	get_body(response)
+	# def url do
+	# 	cafe = cafe()
+	# 	'http://legacy.cafebonappetit.com/api/2/menus?cafe=#{cafe}'
 	# end
 
-	# def get_body(response) do
-	# 	response
-	# 	|> Map.from_struct
-	# 	|> Map.fetch!(:body)
-	# 	|> decode_body(response.status_code)
+	# def body_map do
+	# 	fetch2(url())
 	# end
 
-	# def decode_body(body, status_code) do
-	# 	case status_code do
-	# 		200 -> 
-	# 			Poison.decode!(body)
-	# 			# for {key, val} <- z, into: %{}, do: {String.to_atom(key), val} 
-	# 		_ ->
-	# 			"No!"
-	# 	end
+	# def item_list do
+	# 	body_map()["items"]
 	# end
 
 	def fetch2(url) do
@@ -148,25 +141,50 @@ defmodule BonAppetit.Menu do
 	end
 
 	def finish(body_map) do
-		IO.inspect body_map
+		body_map
+		# hd (hd (hd body_map["days"])["cafes"][cafe]["dayparts"]) is first meal
+		# |> meal_time
 	end
 
-	def get_item_label(body_map, item_no) do
-		item_label = body_map["items"][item_no]["label"]
+	#  hd (hd body_map["days"])["cafes"][cafe]["dayparts"] 
+	def dayparts(dayparts, map) when length(dayparts) <= 0, do: IO.inspect map
+	def dayparts(dayparts, map) do
+		curr_daypart = hd dayparts
+		daypart_label = curr_daypart["label"]
+		daypart_stations = curr_daypart["stations"]
+		map = Map.put(map, daypart_label, stations(daypart_stations, %{}))
+		dayparts((tl dayparts), map)
 	end
 
-	# def get_breakfast_items(body_map) do
-	# 	breakfast = (hd(hd(hd body_map["days"])["cafes"][cafe]["dayparts"]))
-	# 	# which meal is it? breakfast, lunch, dinner, brunch?
-	# 	meal = breakfast["label"]
-	# 	# a list of stations and what's being served
-	# 	stations = breakfast["stations"]
+	# (hd (hd (hd body_map["days"])["cafes"][cafe]["dayparts"])) ["stations"]
+	def stations(stations, map) when length(stations) <= 0, do: map
+	def stations(stations, map) do
+		curr_station = hd stations
+		station = curr_station["label"]
+		station_items = get_item_names((curr_station["items"]), [])
+		map = Map.put(map, station, station_items)
+		stations((tl stations), map)
+	end
 
-	# end
 
+	def get_item_names(item_list, item_names) when length(item_list) <= 0, do: item_names
+	def get_item_names(item_list, item_names) do
+		curr_item_no = hd item_list
+		item_name = get_item_name(curr_item_no)
+		item_names ++ [item_name]
+		items((tl item_list),item_names)
+	end
+
+	def get_item_name(item_no) do
+		item_name = items_index[item_no]["label"]
+	end
+
+
+# Need to somehow store all item numbers and descriptions in config?
+# by calling the api?
 end
 
-BonAppetit.Menu.fetch2('http://legacy.cafebonappetit.com/api/2/menus?cafe=332')
+# BonAppetit.Menu.fetch2('http://legacy.cafebonappetit.com/api/2/menus?cafe=332')
 
 
 
