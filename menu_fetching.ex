@@ -108,26 +108,32 @@ defmodule BonAppetit.Menu do
 	# def cafe do
 	# 	"332"
 	# end
-	cafe = "332"
-	url = 'http://legacy.cafebonappetit.com/api/2/menus?cafe=#{cafe}'
+	@usdan "332"
+	@summies "337"
+	@usdanurl "http://legacy.cafebonappetit.com/api/2/menus?cafe=#{@usdan}"
+	@summiesurl "http://legacy.cafebonappetit.com/api/2/menus?cafe=#{@summies}"
+
 	# def url do
 	# 	cafe = cafe()
 	# 	'http://legacy.cafebonappetit.com/api/2/menus?cafe=#{cafe}'
-	# end
-
-	# def body_map do
-	# 	fetch2(url())
 	# end
 
 	# def item_list do
 	# 	body_map()["items"]
 	# end
 
-	def fetch2(url) do
-		{:ok, response} = HTTPoison.get(url, [])
+	# http://elixir-lang.org/getting-started/module-attributes.html#as-constants
+
+
+	def fetch_usdan() do
+		{:ok, response} = HTTPoison.get(@usdanurl, [])
 		secondary(response)
 	end
 
+	def fetch_summies() do 
+		{:ok, response} = HTTPoison.get(@summiesurl, [])
+		secondary(response)
+	end
 	def secondary(response) do
 	    response
 	    |> Map.from_struct
@@ -137,17 +143,25 @@ defmodule BonAppetit.Menu do
 
 	def decode_body(body) do
 		{:ok, body_map} = Poison.decode(body)
-		finish(body_map)
+		body_map
 	end
 
-	def finish(body_map) do
-		body_map
-		# hd (hd (hd body_map["days"])["cafes"][cafe]["dayparts"]) is first meal
-		# |> meal_time
+
+	# http://stackoverflow.com/questions/31862889/elixir-modifying-value-of-module-attribute
+	# def body_map do
+	# 	Agent.start_link(fetch2(), name: __BODYMAP__)
+	# end
+
+	# @body_map fetch2
+	# @items_index ""
+
+	def get_all_necessary_data(body_map) do
+		menu = hd (hd body_map["days"])["cafes"][cafe]["dayparts"]
+		IO.inspect dayparts(menu, %{})
 	end
 
 	#  hd (hd body_map["days"])["cafes"][cafe]["dayparts"] 
-	def dayparts(dayparts, map) when length(dayparts) <= 0, do: IO.inspect map
+	def dayparts(dayparts, map) when length(dayparts) <= 0, do: map
 	def dayparts(dayparts, map) do
 		curr_daypart = hd dayparts
 		daypart_label = curr_daypart["label"]
@@ -172,11 +186,11 @@ defmodule BonAppetit.Menu do
 		curr_item_no = hd item_list
 		item_name = get_item_name(curr_item_no)
 		item_names ++ [item_name]
-		items((tl item_list),item_names)
+		get_item_names((tl item_list),item_names)
 	end
 
 	def get_item_name(item_no) do
-		item_name = items_index[item_no]["label"]
+		item_name = @items_index[item_no]["label"]
 	end
 
 
@@ -184,7 +198,7 @@ defmodule BonAppetit.Menu do
 # by calling the api?
 end
 
-# BonAppetit.Menu.fetch2('http://legacy.cafebonappetit.com/api/2/menus?cafe=332')
+IO.inspect BonAppetit.Menu.fetch2()
 
 
 
