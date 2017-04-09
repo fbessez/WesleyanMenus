@@ -9,6 +9,31 @@ defmodule Common do
 	end
 end
 
+def RedandBlack.Menu do
+
+	# Grabs the latest post on Red-black specials website
+	def get_post_url do
+		Common.get_body("https://weswings.com/category/red-black-specials/")
+		|> hd()
+		|> Floki.attribute("href")
+		|> hd()
+		|> grab_html()
+	end
+
+	def scrape_menu_items(url) do
+		case url do
+			false -> "Sorry, check out #{url} for today's specials"
+			_ -> 
+				IO.inspect url
+				HTTPoison.get!(url).body
+				|> Floki.parse()
+				|> Floki.find("div .entry-content")
+			 	|> Floki.filter_out("div div") #leaves you with just the items
+			 	|> Floki.raw_html #leaves you with some good html!!
+		end
+	end
+end
+
 
 ### Star & Crescent
 ### I could just grab the whole week at once
@@ -30,11 +55,8 @@ defmodule StarandCrescent.Menu do
 			_ -> 
 				curr = hd found_floki
 				title = hd(elem(curr, 2))
-				case String.slice(title, 0, 22) do
-		# case title = "Star and Crescent Menu"
-		# this should be grabbing top down so most recent
-		# otherwise i can match with the current week 4/4 or 3/27 or whatever
-					"Star and Crescent Menu" -> 
+				case title =~ "Star and Crescent Menu" do
+					true -> 
 						Floki.attribute(curr, "href")
 						|> hd()
 					_ -> find_correct_post(tl found_floki)
@@ -68,13 +90,19 @@ defmodule Weswings.Menu do
 		|> scrape_menu_items
 	end
 
+	def date_string do
+		local_time = :calendar.local_time()
+		month = to_string(elem(elem(local_time, 0), 1))
+		day = to_string(elem(elem(local_time, 0), 2))
+		month <> "-" <> day
+	end
+
 	def find_correct_post(found_floki) when length(found_floki) == 0, do: false
 	def find_correct_post(found_floki) do
 		curr_tag = hd(found_floki)
 		post_title = hd(elem(curr_tag, 2))
-		case String.slice(post_title, 0, 13) do
-			# Or i could case on if 4-9-17 is in the title
-			"WesWings Spec" -> 
+		case (post_title =~ date_string) do
+			true -> 
 				curr_tag
 				|> Floki.attribute("href")
 				|> hd()
@@ -91,18 +119,13 @@ defmodule Weswings.Menu do
 				HTTPoison.get!(url).body
 				|> Floki.parse()
 				|> Floki.find("div .entry-content")
-			# Floki.find("b") lists all the specials of the day
-			# Floki.find("h3") lists the meals
 			 	|> Floki.filter_out("div div") #leaves you with just the items
 			 	|> Floki.raw_html #leaves you with some good html!!
-			# |> Floki.text
 		end
 	end
 end
 
-# IO.inspect Weswings.Menu.get_body()
-
-
+# Weswings.Menu.get_body()
 
 defmodule BonAppetit.Fetch do
 	@usdan "332"
@@ -179,7 +202,7 @@ defmodule Usdan.Menu do
 # by calling the api?
 end
 
-Usdan.Menu.get_all_necessary_data()
+# Usdan.Menu.get_all_necessary_data()
 
 
 
