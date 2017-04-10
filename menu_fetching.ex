@@ -9,7 +9,7 @@ defmodule Common do
 	end
 end
 
-def RedandBlack.Menu do
+defmodule RedandBlack.Menu do
 
 	# Grabs the latest post on Red-black specials website
 	def get_post_url do
@@ -17,7 +17,7 @@ def RedandBlack.Menu do
 		|> hd()
 		|> Floki.attribute("href")
 		|> hd()
-		|> grab_html()
+		|> scrape_menu_items()
 	end
 
 	def scrape_menu_items(url) do
@@ -71,13 +71,13 @@ defmodule StarandCrescent.Menu do
 		{:ok, res} = HTTPoison.get(url, [])
 		res.body
 		|> Floki.parse()
-		|> Floki.find("div, .entry-content")
+		|> Floki.find("div .entry-content")
 		|> Floki.filter_out("div p img")
 		|> Floki.raw_html
 	end
 end
 
-# IO.inspect StarandCrescent.Menu.get_body()
+IO.inspect StarandCrescent.Menu.get_body()
 
 
 ### WesWings --> COMPLETE-ish
@@ -101,7 +101,7 @@ defmodule Weswings.Menu do
 	def find_correct_post(found_floki) do
 		curr_tag = hd(found_floki)
 		post_title = hd(elem(curr_tag, 2))
-		case (post_title =~ date_string) do
+		case (post_title =~ date_string()) do
 			true -> 
 				curr_tag
 				|> Floki.attribute("href")
@@ -160,7 +160,7 @@ defmodule Usdan.Menu do
 	def get_items_index, do: @body_map["items"]
 
 	def get_all_necessary_data() do
-		menu = hd (hd get_body_map["days"])["cafes"][@usdan]["dayparts"]
+		menu = hd (hd get_body_map()["days"])["cafes"][@usdan]["dayparts"]
 		IO.inspect dayparts(menu, %{})
 	end
 
@@ -194,7 +194,7 @@ defmodule Usdan.Menu do
 	end
 
 	def get_item_name(item_no) do
-		get_items_index[item_no]["label"]
+		get_items_index()[item_no]["label"]
 	end
 
 

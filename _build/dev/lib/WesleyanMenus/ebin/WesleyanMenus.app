@@ -1,7 +1,7 @@
 {application,'WesleyanMenus',
-             [{registered,[]},
-              {description,"WesleyanMenus"},
-              {vsn,"1.0.0"},
+             [{description,"WesleyanMenus"},
               {modules,[]},
+              {registered,[]},
+              {vsn,"1.0.0"},
               {applications,[kernel,stdlib,elixir,poison,httpotion,httpoison,
                              floki]}]}.
