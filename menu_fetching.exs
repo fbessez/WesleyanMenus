@@ -1,4 +1,4 @@
-# mix run menu_fetching.ex
+# mix run menu_fetching.ex so long as they are all .exs
 
 defmodule Common do
 	def get_body(url) do
